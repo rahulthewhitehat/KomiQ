@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/providers.dart';
+import '../providers/scroll_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/widgets.dart';
 
 class SettingsScreen extends StatelessWidget {

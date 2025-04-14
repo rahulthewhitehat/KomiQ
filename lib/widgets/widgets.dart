@@ -1,9 +1,11 @@
 // widgets/mini_music_player.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/providers.dart';
+import '../providers/music_provider.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
+
+import '../providers/scroll_provider.dart';
 
 
 class MiniMusicPlayer extends StatelessWidget {

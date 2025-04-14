@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/providers.dart';
+import '../providers/scroll_provider.dart';
 import '../widgets/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -13,7 +13,7 @@ class MangaReaderScreen extends StatefulWidget {
   _MangaReaderScreenState createState() => _MangaReaderScreenState();
 }
 
-class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTickerProviderStateMixin {
+class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final String baseUrl = 'https://weebcentral.com/';
   late WebViewController _webViewController;
   bool _isFullscreen = false;
@@ -113,6 +113,7 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final platformHelper = PlatformHelper();
     final _ = Provider.of<ScrollProvider>(context);
     final theme = Theme.of(context);
@@ -145,7 +146,7 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
               ),
               SizedBox(width: 8),
               Text(
-                'WeebReader',
+                'KomiQ',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
@@ -329,6 +330,9 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
           'document.elementFromPoint(window.innerWidth/2, window.innerHeight/2).click();');
     }
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class AutoScrollControlsCard extends StatelessWidget {

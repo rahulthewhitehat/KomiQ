@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:readit/screens/home_screen.dart';
-import 'providers/providers.dart';
+import 'package:readit/providers/music_provider.dart';
+import 'package:readit/providers/scroll_provider.dart';
+import 'package:readit/providers/theme_provider.dart';
+import 'package:readit/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +40,7 @@ class WeebReaderApp extends StatelessWidget {
       theme: themeProvider.lightTheme,
       darkTheme: themeProvider.darkTheme,
       themeMode: themeProvider.themeMode,
-      home: HomeScreen(),
+      home: SplashScreen(), // Changed from HomeScreen() to SplashScreen()
     );
   }
 }

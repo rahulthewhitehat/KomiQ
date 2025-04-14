@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/providers.dart';
+import '../providers/music_provider.dart';
 import '../widgets/widgets.dart';
 import 'manga_reader_screen.dart';
 import 'music_player_screen.dart';
@@ -15,15 +15,20 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
+final PageStorageBucket _bucket = PageStorageBucket();
+
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   late AnimationController _pageTransitionController;
-  late Animation<double> _pageAnimation;
   late AnimationController _navBarAnimationController;
   late Animation<double> _navBarAnimation;
 
+
   final List<Widget> _screens = [
-    MangaReaderScreen(),
+    PageStorage(
+      bucket: _bucket,
+      child: MangaReaderScreen(),
+    ),
     MusicPlayerScreen(),
     SettingsScreen(),
   ];
@@ -41,10 +46,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _pageTransitionController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 400),
-    );
-    _pageAnimation = CurvedAnimation(
-      parent: _pageTransitionController,
-      curve: Curves.easeInOut,
     );
 
     _navBarAnimationController = AnimationController(
@@ -113,15 +114,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
 
                 // Main content with animation
-                FadeTransition(
-                  opacity: _pageAnimation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: Offset(0.05, 0),
-                      end: Offset.zero,
-                    ).animate(_pageAnimation),
-                    child: _screens[_selectedIndex],
-                  ),
+                IndexedStack(
+                  index: _selectedIndex,
+                  children: _screens,
                 ),
 
                 // Mini music player overlay with glass morphism effect

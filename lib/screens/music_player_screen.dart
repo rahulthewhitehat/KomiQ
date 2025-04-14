@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/providers.dart';
+import '../providers/music_provider.dart';
 import '../widgets/widgets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -154,7 +154,7 @@ class MusicPlayerScreen extends StatelessWidget {
             SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => _showAddMusicOptions(context),
-              icon: Icon(Icons.add, size: isSmallScreen ? 18 : 20),
+              icon: Icon(Icons.add, size: isSmallScreen ? 18 : 20, color: Colors.black,),
               label: Text('Add Music', style: TextStyle(fontSize: isSmallScreen ? 14 : 16)),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -468,5 +468,3 @@ class MusicPlayerScreen extends StatelessWidget {
     );
   }
 }
-
-// Don't forget to implement the YouTubeUrlDialog class or import it from your existing code
