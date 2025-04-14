@@ -24,6 +24,7 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
   bool _showScrollControls = false;
   late AnimationController _fabAnimationController;
   late Animation<double> _fabAnimation;
+  bool _canGoBack = false;
 
   @override
   void initState() {
@@ -75,15 +76,21 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
               _isLoading = true;
               _webViewOpacity = 0.0;
             });
+            _updateBackButtonState();
           },
           onPageFinished: (String url) {
             setState(() {
               _isLoading = false;
               _webViewOpacity = 1.0;
             });
+            _updateBackButtonState();
           },
           onWebResourceError: (WebResourceError error) {
             //print('WebView error: ${error.description}');
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            // You can add logic here to control navigation if needed
+            return NavigationDecision.navigate;
           },
         ),
       )
@@ -91,6 +98,26 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
       ..setBackgroundColor(const Color(0x00000000));
 
     _webViewController = controller;
+  }
+
+  Future<void> _updateBackButtonState() async {
+    final canGoBack = await _webViewController.canGoBack();
+    setState(() {
+      _canGoBack = canGoBack;
+    });
+  }
+
+  Future<bool> _handleBackPressed() async {
+    final canGoBack = await _webViewController.canGoBack();
+    if (canGoBack) {
+      _webViewController.goBack();
+      return false; // Don't close the app
+    }
+    return true; // Allow the app to handle back button (close app)
+  }
+
+  void _goToHomePage() {
+    _webViewController.loadRequest(Uri.parse(baseUrl));
   }
 
   void _toggleFullscreen() {
@@ -122,195 +149,217 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
       brightness: theme.brightness,
     );
 
-    return RawKeyboardListener(
-      focusNode: _webViewFocusNode,
-      onKey: (RawKeyEvent event) {
-        if (platformHelper.isTV && event is RawKeyDownEvent) {
-          _handleTVKeyNavigation(event);
-        }
-      },
-      child: Scaffold(
-        backgroundColor: theme.brightness == Brightness.dark
-            ? Color(0xFF121212)
-            : Colors.white,
-        extendBodyBehindAppBar: false,
-        appBar: _isFullscreen
-            ? null
-            : AppBar(
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.book,
-                color: colorScheme.primary,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'KomiQ',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                  fontSize: 20,
+    return WillPopScope(
+      onWillPop: _handleBackPressed,
+      child: RawKeyboardListener(
+        focusNode: _webViewFocusNode,
+        onKey: (RawKeyEvent event) {
+          if (platformHelper.isTV && event is RawKeyDownEvent) {
+            _handleTVKeyNavigation(event);
+          }
+        },
+        child: Scaffold(
+          backgroundColor: theme.brightness == Brightness.dark
+              ? Color(0xFF121212)
+              : Colors.white,
+          extendBodyBehindAppBar: false,
+          appBar: _isFullscreen
+              ? null
+              : AppBar(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.book,
+                  color: colorScheme.primary,
                 ),
+                SizedBox(width: 8),
+                Text(
+                  'KomiQ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+            centerTitle: true,
+            backgroundColor: theme.brightness == Brightness.dark
+                ? Color(0xFF1E1E1E).withOpacity(0.95)
+                : Colors.white.withOpacity(0.95),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(20),
+              ),
+            ),
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back,
+                color: _canGoBack ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.3),
+              ),
+              onPressed: _canGoBack
+                  ? () async {
+                await _webViewController.goBack();
+                _updateBackButtonState();
+              }
+                  : null,
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.home_rounded,
+                  color: colorScheme.primary,
+                ),
+                onPressed: _goToHomePage,
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.refresh_rounded,
+                  color: colorScheme.primary,
+                ),
+                onPressed: () => _webViewController.reload(),
+              ),
+              IconButton(
+                icon: Icon(
+                  _isFullscreen
+                      ? Icons.fullscreen_exit_rounded
+                      : Icons.fullscreen_rounded,
+                  color: colorScheme.primary,
+                ),
+                onPressed: _toggleFullscreen,
               ),
             ],
           ),
-          centerTitle: true,
-          backgroundColor: theme.brightness == Brightness.dark
-              ? Color(0xFF1E1E1E).withOpacity(0.95)
-              : Colors.white.withOpacity(0.95),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.refresh_rounded,
-                color: colorScheme.primary,
+          body: Stack(
+            children: [
+              // WebView with fade animation
+              AnimatedOpacity(
+                opacity: _webViewOpacity,
+                duration: Duration(milliseconds: 300),
+                child: WebViewWidget(
+                  controller: _webViewController,
+                ),
               ),
-              onPressed: () => _webViewController.reload(),
-            ),
-            IconButton(
-              icon: Icon(
-                _isFullscreen
-                    ? Icons.fullscreen_exit_rounded
-                    : Icons.fullscreen_rounded,
-                color: colorScheme.primary,
-              ),
-              onPressed: _toggleFullscreen,
-            ),
-          ],
-        ),
-        body: Stack(
-          children: [
-            // WebView with fade animation
-            AnimatedOpacity(
-              opacity: _webViewOpacity,
-              duration: Duration(milliseconds: 300),
-              child: WebViewWidget(
-                controller: _webViewController,
-              ),
-            ),
 
-            // Loading indicator with modern design
-            if (_isLoading)
-              Container(
-                width: double.infinity,
-                height: double.infinity,
-                color: theme.brightness == Brightness.dark
-                    ? Colors.black.withOpacity(0.7)
-                    : Colors.white.withOpacity(0.7),
-                child: Center(
-                  child: Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Container(
-                      padding: EdgeInsets.all(32),
-                      decoration: BoxDecoration(
+              // Loading indicator with modern design
+              if (_isLoading)
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.7)
+                      : Colors.white.withOpacity(0.7),
+                  child: Center(
+                    child: Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colorScheme.primaryContainer,
-                            colorScheme.primary,
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              colorScheme.primaryContainer,
+                              colorScheme.primary,
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  colorScheme.onPrimary,
+                                ),
+                                strokeWidth: 4,
+                              ),
+                            ),
+                            SizedBox(height: 24),
+                            Text(
+                              'Loading Manga...',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onPrimary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                colorScheme.onPrimary,
-                              ),
-                              strokeWidth: 4,
+                    ),
+                  ),
+                ),
+
+              // Auto-scroll controls
+              if (_showScrollControls && !_isFullscreen && !_isLoading)
+                Positioned(
+                  bottom: 190,
+                  right: 20,
+                  child: ScaleTransition(
+                    scale: _fabAnimation,
+                    child: AutoScrollControls()
+                  ),
+                ),
+
+              // FAB for scroll controls visibility
+              if (!_isFullscreen && !_isLoading)
+                Positioned(
+                  bottom: 110,
+                  right: 30,
+                  child: FloatingActionButton(
+                    onPressed: _toggleScrollControls,
+                    backgroundColor: colorScheme.primary,
+                    elevation: 8,
+                    child: Icon(
+                      _showScrollControls ? Icons.speed_outlined : Icons.speed,
+                      color: colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+
+              // Fullscreen exit button
+              if (_isFullscreen)
+                Positioned(
+                  top: 24,
+                  right: 24,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _toggleFullscreen,
+                      borderRadius: BorderRadius.circular(40),
+                      child: Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer.withOpacity(0.7),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 8,
+                              spreadRadius: 1,
                             ),
-                          ),
-                          SizedBox(height: 24),
-                          Text(
-                            'Loading Manga...',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.fullscreen_exit_rounded,
+                          color: colorScheme.onPrimaryContainer,
+                          size: 28,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-
-            // Auto-scroll controls
-            if (_showScrollControls && !_isFullscreen && !_isLoading)
-              Positioned(
-                bottom: 190,
-                right: 20,
-                child: ScaleTransition(
-                  scale: _fabAnimation,
-                  child: AutoScrollControlsCard(),
-                ),
-              ),
-
-            // FAB for scroll controls visibility
-            if (!_isFullscreen && !_isLoading)
-              Positioned(
-                bottom: 110,
-                right: 30,
-                child: FloatingActionButton(
-                  onPressed: _toggleScrollControls,
-                  backgroundColor: colorScheme.primary,
-                  elevation: 8,
-                  child: Icon(
-                    _showScrollControls ? Icons.speed_outlined : Icons.speed,
-                    color: colorScheme.onPrimary,
-                  ),
-                ),
-              ),
-
-            // Fullscreen exit button
-            if (_isFullscreen)
-              Positioned(
-                top: 24,
-                right: 24,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: _toggleFullscreen,
-                    borderRadius: BorderRadius.circular(40),
-                    child: Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer.withOpacity(0.7),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.fullscreen_exit_rounded,
-                        color: colorScheme.onPrimaryContainer,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -333,131 +382,4 @@ class _MangaReaderScreenState extends State<MangaReaderScreen> with SingleTicker
 
   @override
   bool get wantKeepAlive => true;
-}
-
-class AutoScrollControlsCard extends StatelessWidget {
-  const AutoScrollControlsCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final scrollProvider = Provider.of<ScrollProvider>(context);
-    final theme = Theme.of(context);
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: Color(0xFFEE0008),
-      brightness: theme.brightness,
-    );
-
-    return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: 280,
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.surfaceContainerHighest,
-              colorScheme.surface,
-            ],
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.auto_awesome,
-                      color: colorScheme.primary,
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Auto-Scroll',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-                Switch(
-                  value: scrollProvider.isAutoScrollEnabled,
-                  onChanged: (_) => scrollProvider.toggleAutoScroll(),
-                  activeColor: colorScheme.primary,
-                  activeTrackColor: colorScheme.primaryContainer,
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(
-                  Icons.speed,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Speed',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            SliderTheme(
-              data: SliderThemeData(
-                activeTrackColor: colorScheme.primary,
-                thumbColor: colorScheme.primary,
-                overlayColor: colorScheme.primary.withOpacity(0.2),
-                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12),
-                overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
-              ),
-              child: Slider(
-                value: scrollProvider.scrollSpeed,
-                min: 0.5,
-                max: 10.0,
-                divisions: 19,
-                label: scrollProvider.scrollSpeed.toStringAsFixed(1),
-                onChanged: (value) {
-                  scrollProvider.setScrollSpeed(value);
-                },
-              ),
-            ),
-            SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Slow',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                Text(
-                  'Fast',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

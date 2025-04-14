@@ -35,7 +35,7 @@ class WeebReaderApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
-      title: 'WeebReader',
+      title: 'KomiQ',
       debugShowCheckedModeBanner: false,
       theme: themeProvider.lightTheme,
       darkTheme: themeProvider.darkTheme,

@@ -533,8 +533,6 @@ class _YouTubeUrlDialogState extends State<YouTubeUrlDialog> {
   }
 }
 
-
-
 class PlatformHelper {
   bool _isTV = false;
 
