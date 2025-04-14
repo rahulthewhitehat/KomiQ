@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:readit/about_screen.dart';
 import '../providers/scroll_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/widgets.dart';
@@ -62,20 +63,6 @@ class SettingsScreen extends StatelessWidget {
 
             SizedBox(height: platformHelper.isTV ? 32 : 24),
 
-            // Reading Mode Section
-            _buildSectionHeader('Reading Mode', context, platformHelper, colorScheme),
-            _buildSwitchTile(
-              'Sepia Mode',
-              'Enables sepia tone for better reading comfort',
-              themeProvider.isSepia,
-                  (value) => themeProvider.toggleSepia(),
-              context,
-              platformHelper,
-              colorScheme,
-            ),
-
-            SizedBox(height: platformHelper.isTV ? 32 : 24),
-
             // Auto Scroll Section
             _buildSectionHeader('Auto Scroll Settings', context, platformHelper, colorScheme),
             _buildScrollSpeedSlider(context, scrollProvider, platformHelper, colorScheme),
@@ -84,76 +71,85 @@ class SettingsScreen extends StatelessWidget {
 
             // About Section
             _buildSectionHeader('About', context, platformHelper, colorScheme),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: platformHelper.isTV ? 16 : 8),
-              decoration: BoxDecoration(
-                color: theme.brightness == Brightness.dark
-                    ? Color(0xFF2A2A2A)
-                    : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ListTile(
-                contentPadding: EdgeInsets.all(platformHelper.isTV ? 24 : 16),
-                title: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colorScheme.primary,
-                            colorScheme.primaryContainer,
-                          ],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.book,
-                        color: colorScheme.onPrimary,
-                        size: platformHelper.isTV ? 28 : 20,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      'WeebReader',
-                      style: TextStyle(
-                        fontSize: platformHelper.isTV ? 22 : 18,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
+            InkWell(
+              onTap: () {
+                // Navigate to the about page when tapped
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => AboutScreen()),
+                );
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: platformHelper.isTV ? 16 : 8),
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark
+                      ? Color(0xFF2A2A2A)
+                      : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
-                subtitle: Padding(
-                  padding: EdgeInsets.only(top: 16, left: platformHelper.isTV ? 10 : 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: ListTile(
+                  contentPadding: EdgeInsets.all(platformHelper.isTV ? 24 : 16),
+                  title: Row(
                     children: [
-                      Text(
-                        'Version 1.0.0',
-                        style: TextStyle(
-                          fontSize: platformHelper.isTV ? 18 : 14,
-                          fontWeight: FontWeight.w500,
+                      Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              colorScheme.primary,
+                              colorScheme.primaryContainer,
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.book,
+                          color: colorScheme.onPrimary,
+                          size: platformHelper.isTV ? 28 : 20,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(width: 12),
                       Text(
-                        'A manga reader app with music playback functionality',
+                        'KomiQ',
                         style: TextStyle(
-                          fontSize: platformHelper.isTV ? 16 : 14,
-                          color: Colors.grey,
+                          fontSize: platformHelper.isTV ? 22 : 18,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ],
+                  ),
+                  subtitle: Padding(
+                    padding: EdgeInsets.only(top: 16, left: platformHelper.isTV ? 10 : 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Version 1.0.0',
+                          style: TextStyle(
+                            fontSize: platformHelper.isTV ? 18 : 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'A manga reader app with music playback and auto-scrolling functionality developed by Rahul Babu M P.',
+                          style: TextStyle(
+                            fontSize: platformHelper.isTV ? 16 : 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -306,68 +302,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSwitchTile(
-      String title,
-      String subtitle,
-      bool value,
-      Function(bool) onChanged,
-      BuildContext context,
-      PlatformHelper platformHelper,
-      ColorScheme colorScheme,
-      ) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: platformHelper.isTV ? 16 : 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Color(0xFF2A2A2A)
-            : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: SwitchListTile(
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: platformHelper.isTV ? 24 : 16,
-          vertical: platformHelper.isTV ? 8 : 4,
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: platformHelper.isTV ? 20 : 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            fontSize: platformHelper.isTV ? 16 : 14,
-            color: Colors.grey,
-          ),
-        ),
-        value: value,
-        onChanged: onChanged,
-        activeColor: colorScheme.primary,
-        activeTrackColor: colorScheme.primaryContainer,
-        secondary: Container(
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: value ? colorScheme.primaryContainer.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.remove_red_eye,
-            color: value ? colorScheme.primary : Colors.grey,
-            size: platformHelper.isTV ? 28 : 20,
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildScrollSpeedSlider(
       BuildContext context,

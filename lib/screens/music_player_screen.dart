@@ -36,7 +36,7 @@ class MusicPlayerScreen extends StatelessWidget {
             ),
             SizedBox(width: 8),
             Text(
-              'Music Player',
+              'Play Music',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
