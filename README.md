@@ -1,6 +1,6 @@
-# 📚 KomiQ - Manga Reader App for Android & Android TV
+# 📚 KomiQ - Manga Reader App for Android
 
-**KomiQ** is a powerful and immersive manga reading app built using **Flutter**, optimized for both **Android Mobile**. It loads the popular manga site [WeebCentral](https://weebcentral.com/) within the app and enriches the reading experience with music playback (local & YouTube), auto-scrolling.
+**KomiQ** is a powerful and immersive manga reading app built using **Flutter**, optimized for  **Android Mobile**. It loads the popular manga site [WeebCentral](https://weebcentral.com/) within the app and enriches the reading experience with music playback (local & YouTube), auto-scrolling.
 
 ---
 
